@@ -66,6 +66,7 @@ func main() {
 	shell.AddCmd(handlers.CmdDeviceInfo(&devices[idx]))
 	shell.AddCmd(handlers.CmdApplicationList(devices[idx].Entry))
 	shell.AddCmd(handlers.CmdProcessList(devices[idx].Entry))
+	shell.AddCmd(handlers.CmdRebootSystem(devices[idx].Entry))
 	fmt.Println(shell.HelpText())
 	shell.Run()
 }
