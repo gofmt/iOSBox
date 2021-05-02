@@ -20,6 +20,7 @@ func CmdProcessList(entry ios.DeviceEntry) *ishell.Cmd {
 				fmt.Println("连接服务错误", err)
 				return
 			}
+			defer dis.Close()
 
 			procList, err := dis.ProcessList()
 			if err != nil {

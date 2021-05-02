@@ -20,6 +20,7 @@ func CmdApplicationList(entry ios.DeviceEntry) *ishell.Cmd {
 				fmt.Println("连接安装服务错误：", err)
 				return
 			}
+			defer conn.Close()
 
 			userAppList, err := conn.BrowseUserApps()
 			if err != nil {
