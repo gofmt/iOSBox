@@ -9,7 +9,7 @@ import (
 func CmdRebootSystem(entry ios.DeviceEntry) *ishell.Cmd {
 	return &ishell.Cmd{
 		Name: "reboot",
-		Help: "重启当前设备",
+		Help: "重启当前设备，重启后需要重新越狱",
 		Func: func(c *ishell.Context) {
 			_ = diagnostics.Reboot(entry)
 		},
