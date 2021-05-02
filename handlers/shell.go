@@ -81,12 +81,49 @@ func CmdShell(deviceInfo *DeviceInfo) *ishell.Cmd {
 	}
 }
 
+func CmdShellRun(entry ios.DeviceEntry) *ishell.Cmd {
+	return &ishell.Cmd{
+		Name: "run",
+		Help: "执行任何shell命令",
+		Func: func(c *ishell.Context) {
+			if len(c.Args) < 1 {
+				fmt.Println("参数错误")
+				return
+			}
+
+			cli, err := newSSHClient(entry)
+			if err != nil {
+				fmt.Println("创建SSH客户端错误：", err)
+				return
+			}
+			defer func(cli *ssh.Client) {
+				_ = cli.Close()
+			}(cli)
+
+			session, err := cli.NewSession()
+			if err != nil {
+				fmt.Println("创建SSH会话错误：", err)
+				return
+			}
+			defer func(session *ssh.Session) {
+				_ = session.Close()
+			}(session)
+
+			session.Stdout = os.Stdout
+
+			if err := session.Run(strings.Join(c.Args, " ")); err != nil {
+				fmt.Println("执行SHELL命令错误：", err)
+			}
+		},
+	}
+}
+
 func CmdSCP(entry ios.DeviceEntry) *ishell.Cmd {
 	return &ishell.Cmd{
 		Name: "scp",
 		Help: "双向专递文件",
 		Func: func(c *ishell.Context) {
-			// scp remote:./testfile ./
+			// scp remote:./testfile ./testfile
 			// scp ./testfile remote:./testfile
 			if len(c.Args) < 2 {
 				fmt.Println("参数错误")

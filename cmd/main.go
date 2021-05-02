@@ -73,10 +73,12 @@ func main() {
 	shell.AddCmd(handlers.CmdApplicationList(entry))
 	shell.AddCmd(handlers.CmdProcessList(entry))
 	shell.AddCmd(handlers.CmdRebootSystem(entry))
+	shell.AddCmd(handlers.CmdProcessLaunch(entry))
 	shell.AddCmd(handlers.CmdProcessKill(entry))
 	shell.AddCmd(handlers.CmdSyslog(entry))
 	shell.AddCmd(handlers.CmdShell(currentDevice))
 	shell.AddCmd(handlers.CmdSCP(entry))
+	shell.AddCmd(handlers.CmdShellRun(entry))
 
 	fmt.Println(shell.HelpText())
 

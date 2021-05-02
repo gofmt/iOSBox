@@ -43,6 +43,35 @@ func CmdProcessList(entry ios.DeviceEntry) *ishell.Cmd {
 	}
 }
 
+func CmdProcessLaunch(entry ios.DeviceEntry) *ishell.Cmd {
+	return &ishell.Cmd{
+		Name: "launch",
+		Help: "输入应用BundleId启动应用",
+		Func: func(c *ishell.Context) {
+			if len(c.Args) < 1 {
+				fmt.Println("请输入BundleId")
+				return
+			}
+
+			conn, err := instruments.NewProcessControl(entry)
+			if err != nil {
+				fmt.Println("连接服务错误：", err)
+				return
+			}
+			defer conn.Close()
+
+			bundleId := c.Args[0]
+			pid, err := conn.LaunchApp(bundleId)
+			if err != nil {
+				fmt.Println("启动应用错误：", err)
+				return
+			}
+
+			fmt.Printf("应用 %s 已启动，PID = %d\n", bundleId, pid)
+		},
+	}
+}
+
 func CmdProcessKill(entry ios.DeviceEntry) *ishell.Cmd {
 	return &ishell.Cmd{
 		Name: "kill",
