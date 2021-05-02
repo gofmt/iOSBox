@@ -58,15 +58,20 @@ func main() {
 		os.Exit(-1)
 	}
 
-	fmt.Println("================================================================================================")
+	print("\033[H\033[2J")
 
 	deviceName := devices[idx].Value.DeviceName
+	entry := devices[idx].Entry
 	shell := ishell.NewWithConfig(&readline.Config{Prompt: deviceName + "> "})
 	defer shell.Close()
+	shell.NotFound(func(c *ishell.Context) {
+		fmt.Printf("找不到命令 %v\n", c.RawArgs)
+	})
 	shell.AddCmd(handlers.CmdDeviceInfo(&devices[idx]))
-	shell.AddCmd(handlers.CmdApplicationList(devices[idx].Entry))
-	shell.AddCmd(handlers.CmdProcessList(devices[idx].Entry))
-	shell.AddCmd(handlers.CmdRebootSystem(devices[idx].Entry))
+	shell.AddCmd(handlers.CmdApplicationList(entry))
+	shell.AddCmd(handlers.CmdProcessList(entry))
+	shell.AddCmd(handlers.CmdRebootSystem(entry))
+	shell.AddCmd(handlers.CmdProcessKill(entry))
 	fmt.Println(shell.HelpText())
 	shell.Run()
 }
