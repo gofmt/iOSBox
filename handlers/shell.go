@@ -9,9 +9,10 @@ import (
 
 	"github.com/abiosoft/ishell"
 	"github.com/danielpaulus/go-ios/ios"
+	"github.com/dtylman/scp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
-	"howett.net/plist"
+	"golang.org/x/xerrors"
 )
 
 func CmdShell(deviceInfo *DeviceInfo) *ishell.Cmd {
@@ -19,53 +20,9 @@ func CmdShell(deviceInfo *DeviceInfo) *ishell.Cmd {
 		Name: "ssh",
 		Help: "创建SSH交互式环境，需要越狱",
 		Func: func(c *ishell.Context) {
-			intf, err := ios.ConnectToService(deviceInfo.Entry, "com.apple.pcapd")
+			cli, err := newSSHClient(deviceInfo.Entry)
 			if err != nil {
-				fmt.Println("连接服务错误：", err)
-				return
-			}
-			defer intf.Close()
-
-			pListCodec := ios.NewPlistCodec()
-			var ip string
-			for {
-				bs, err := pListCodec.Decode(intf.Reader())
-				if err != nil {
-					fmt.Println("读取网络封包错误：", err)
-					return
-				}
-				_, err = plist.Unmarshal(bs, &bs)
-				if err != nil {
-					fmt.Println("iOS包反系列化错误: ", err)
-					return
-				}
-
-				// 109 iOS封包的头部大小，剩余的是TCP包体，其中头部20字节为IP层结构，取IP头4字节的IP地址
-				ipbytes := bs[109+12 : 109+12+4]
-				ip = net.IP(ipbytes).String()
-				if strings.HasPrefix(ip, "192.168.") { // TODO 可能会有问题,需要反查一下hostname
-					break
-				}
-			}
-			intf.Close()
-			if ip == "" {
-				fmt.Println("未获取到设备IP地址")
-				return
-			}
-
-			cfg := ssh.ClientConfig{
-				User: "root",
-				Auth: []ssh.AuthMethod{
-					ssh.Password("alpine"),
-				},
-				HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-					return nil
-				},
-				Timeout: 10 * time.Second,
-			}
-			cli, err := ssh.Dial("tcp", fmt.Sprintf("%s:22", ip), &cfg)
-			if err != nil {
-				fmt.Println("连接SSH服务器错误：", err)
+				fmt.Println("连接SSH错误：", err)
 				return
 			}
 			defer func(cli *ssh.Client) {
@@ -74,7 +31,7 @@ func CmdShell(deviceInfo *DeviceInfo) *ishell.Cmd {
 
 			session, err := cli.NewSession()
 			if err != nil {
-				fmt.Println("创建SSH会话错误：", err)
+				fmt.Println("获取SSH会话错误：", err)
 				return
 			}
 			defer func(session *ssh.Session) {
@@ -122,4 +79,82 @@ func CmdShell(deviceInfo *DeviceInfo) *ishell.Cmd {
 			_ = session.Wait()
 		},
 	}
+}
+
+func CmdSCP(entry ios.DeviceEntry) *ishell.Cmd {
+	return &ishell.Cmd{
+		Name: "scp",
+		Help: "双向专递文件",
+		Func: func(c *ishell.Context) {
+			// scp remote:./testfile ./
+			// scp ./testfile remote:./testfile
+			if len(c.Args) < 2 {
+				fmt.Println("参数错误")
+				return
+			}
+
+			var (
+				remotePath   = ""
+				localPath    = ""
+				copyToRemote = false
+			)
+			if strings.HasPrefix(c.Args[0], "remote:") {
+				remotePath = strings.TrimLeft(c.Args[0], "remote:")
+				localPath = c.Args[1]
+				copyToRemote = false
+			} else if strings.HasPrefix(c.Args[1], "remote:") {
+				remotePath = strings.TrimLeft(c.Args[1], "remote:")
+				localPath = c.Args[0]
+				copyToRemote = true
+			}
+
+			if len(remotePath) == 0 || len(localPath) == 0 {
+				fmt.Println("SCP参数错误")
+				return
+			}
+
+			cli, err := newSSHClient(entry)
+			if err != nil {
+				fmt.Println("连接SSH错误：", err)
+				return
+			}
+			defer func(cli *ssh.Client) {
+				_ = cli.Close()
+			}(cli)
+
+			if copyToRemote {
+				if _, err := scp.CopyTo(cli, localPath, remotePath); err != nil {
+					fmt.Println("SCP错误：", err)
+					return
+				}
+			} else {
+				if _, err := scp.CopyFrom(cli, remotePath, localPath); err != nil {
+					fmt.Println("SCP错误：", err)
+					return
+				}
+			}
+		},
+	}
+}
+
+func newSSHClient(entry ios.DeviceEntry) (*ssh.Client, error) {
+	if DeviceIP == "" {
+		DeviceIP = GetDeviceIPAddress(entry)
+		if DeviceIP == "" {
+			return nil, xerrors.New("未获取到设备IP地址")
+		}
+	}
+
+	cfg := ssh.ClientConfig{
+		User: "root",
+		Auth: []ssh.AuthMethod{
+			ssh.Password("alpine"),
+		},
+		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+			return nil
+		},
+		Timeout: 10 * time.Second,
+	}
+
+	return ssh.Dial("tcp", fmt.Sprintf("%s:22", DeviceIP), &cfg)
 }

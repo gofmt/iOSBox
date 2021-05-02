@@ -46,7 +46,7 @@ func CmdProcessList(entry ios.DeviceEntry) *ishell.Cmd {
 func CmdProcessKill(entry ios.DeviceEntry) *ishell.Cmd {
 	return &ishell.Cmd{
 		Name: "kill",
-		Help: "结束进程",
+		Help: "输入PID结束进程",
 		Func: func(c *ishell.Context) {
 			conn, err := instruments.NewProcessControl(entry)
 			if err != nil {
