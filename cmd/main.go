@@ -64,6 +64,7 @@ func main() {
 	shell := ishell.NewWithConfig(&readline.Config{Prompt: deviceName + "> "})
 	defer shell.Close()
 	shell.AddCmd(handlers.CmdDeviceInfo(&devices[idx]))
+	shell.AddCmd(handlers.CmdApplicationList(devices[idx].Entry))
 	fmt.Println(shell.HelpText())
 	shell.Run()
 }
