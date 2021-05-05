@@ -16,3 +16,5 @@
 # vendor/
 
 .idea/
+go_build_*_cmd
+/pkg/frida/libfrida-core.a
