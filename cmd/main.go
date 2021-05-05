@@ -49,9 +49,9 @@ func main() {
 		handlers.LdrestartCommand,
 		handlers.RunCommand,
 		handlers.ReSpringBoardCommand,
-		handlers.RunFridaScriptCommand,
 		handlers.ForwardCommand,
 		handlers.SCPCommand,
+		handlers.DonationCommand,
 	)
 
 	app.Run(nil)
