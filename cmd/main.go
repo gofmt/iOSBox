@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 
 	"iOSBox/handlers"
 
@@ -11,7 +10,8 @@ import (
 )
 
 func main() {
-	logrus.SetOutput(io.Discard)
+	// logrus.SetOutput(io.Discard)
+	logrus.SetLevel(logrus.DebugLevel)
 
 	gcli.AppHelpTemplate = `{{.Desc}} (版本: <info>{{.Version}}</>)
 -----------------------------------------------------{{range $cmdName, $c := .Cs}}
@@ -52,6 +52,7 @@ func main() {
 		handlers.ForwardCommand,
 		handlers.SCPCommand,
 		handlers.DonationCommand,
+		handlers.PcapCommand,
 	)
 
 	app.Run(nil)

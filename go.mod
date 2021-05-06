@@ -15,6 +15,8 @@ require (
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/gookit/color v1.4.2
 	github.com/gookit/gcli/v3 v3.0.0
+	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
+	github.com/sevlyar/go-daemon v0.1.5 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6 // indirect
