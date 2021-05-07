@@ -2,12 +2,10 @@ package idevice
 
 import (
 	"testing"
-
-	"github.com/danielpaulus/go-ios/ios"
 )
 
 func TestSyslogService_GetLog(t *testing.T) {
-	device, err := ios.GetDevice("")
+	device, err := GetDevice()
 	if err != nil {
 		t.Fatal(err)
 	}

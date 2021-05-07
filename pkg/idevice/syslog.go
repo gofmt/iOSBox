@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"strings"
-
-	"github.com/danielpaulus/go-ios/ios"
 )
 
 type LogMessage struct {
@@ -17,13 +15,13 @@ type LogMessage struct {
 }
 
 type SyslogService struct {
-	conn   ios.DeviceConnectionInterface
+	conn   IConn
 	br     *bufio.Reader
 	closed bool
 }
 
-func NewSyslogService(entry ios.DeviceEntry) (*SyslogService, error) {
-	conn, err := ios.ConnectToService(entry, "com.apple.syslog_relay")
+func NewSyslogService(entry *DeviceEntry) (*SyslogService, error) {
+	conn, err := ConnectToService(entry, "com.apple.syslog_relay")
 	if err != nil {
 		return &SyslogService{}, err
 	}

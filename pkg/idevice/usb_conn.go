@@ -2,7 +2,6 @@ package idevice
 
 import (
 	"encoding/binary"
-	"errors"
 	"io"
 
 	"golang.org/x/xerrors"
@@ -241,58 +240,31 @@ func (u *USBConn) ConnectLockdown(devicdId int) (*LockdownConn, error) {
 	return &LockdownConn{Conn: u.Conn}, nil
 }
 
-func ConnectLockdownWithSession(entry *DeviceEntry) (*LockdownConn, error) {
-	conn, err := NewUSBConn()
-	if err != nil {
-		return nil, err
-	}
-	// defer conn.Close()
-
-	cert, err := conn.GetCertificate(entry.Properties.SerialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	lockdown, err := conn.ConnectLockdown(entry.DeviceID)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = lockdown.StartSession(cert)
-	if err != nil {
-		return nil, err
-	}
-
-	return lockdown, nil
+var serviceConfigurations = map[string]bool{
+	"com.apple.instruments.remoteserver":                 true,
+	"com.apple.accessibility.axAuditDaemon.remoteserver": true,
+	"com.apple.testmanagerd.lockdown":                    true,
+	"com.apple.debugserver":                              true,
 }
 
-func GetDevice(udid ...string) (device *DeviceEntry, err error) {
-	conn, err := NewUSBConn()
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	list, err := conn.ListDevices()
-	if err != nil {
-		return nil, err
+func (u *USBConn) ConnectWithStartServiceResponse(deviceId int, response *StartServiceResponse, cert *Certificate) error {
+	if err := u.Connect(deviceId, Ntohs(response.Port)); err != nil {
+		return err
 	}
 
-	if len(list) > 0 {
-		device = &list[0]
-		if len(udid) > 0 {
-			for _, entry := range list {
-				if udid[0] == entry.Properties.SerialNumber {
-					device = &entry
-					break
-				}
-			}
+	if response.EnableServiceSSL {
+		var sslerr error
+		if _, ok := serviceConfigurations[response.Service]; ok {
+			sslerr = u.Conn.EnableSessionSSLHandshakeOnly(cert)
+		} else {
+			sslerr = u.Conn.EnableSessionSSL(cert)
 		}
-
-		return
+		if sslerr != nil {
+			return sslerr
+		}
 	}
 
-	return nil, errors.New("没有连接任何iOS设备")
+	return nil
 }
 
 func Ntohs(port uint16) uint16 {

@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"strconv"
 
-	"github.com/danielpaulus/go-ios/ios"
-	"github.com/danielpaulus/go-ios/ios/forward"
+	"iOSBox/pkg/idevice"
+
 	"github.com/gookit/gcli/v3"
 )
 
@@ -19,7 +20,7 @@ var ForwardCommand = &gcli.Command{
 	},
 	Examples: "{$binName} {$cmd} 本机端口 设备端口",
 	Func: func(c *gcli.Command, args []string) error {
-		device, err := ios.GetDevice("")
+		device, err := idevice.GetDevice()
 		if err != nil {
 			return err
 		}
@@ -34,10 +35,18 @@ var ForwardCommand = &gcli.Command{
 			return err
 		}
 
-		err = forward.Forward(device, uint16(localPort), uint16(remotePort))
+		service := idevice.NewForwardService(device)
+		err = service.Start(uint16(localPort), uint16(remotePort), func(s string, err error) {
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println(s)
+			}
+		})
 		if err != nil {
 			return err
 		}
+		defer service.Close()
 
 		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, os.Interrupt)

@@ -9,7 +9,6 @@ import (
 
 	"iOSBox/pkg/idevice"
 
-	"github.com/danielpaulus/go-ios/ios"
 	"github.com/gookit/color"
 	"github.com/gookit/gcli/v3"
 	"golang.org/x/xerrors"
@@ -22,7 +21,7 @@ var SystemLogCommand = &gcli.Command{
 		c.AddArg("arg0", "日志过滤字符串，支持过滤进程名或模块名")
 	},
 	Func: func(c *gcli.Command, args []string) error {
-		device, err := ios.GetDevice("")
+		device, err := idevice.GetDevice()
 		if err != nil {
 			return xerrors.Errorf("连接iOS设备错误: %w", err)
 		}

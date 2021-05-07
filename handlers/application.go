@@ -8,8 +8,6 @@ import (
 
 	"iOSBox/pkg/idevice"
 
-	"github.com/danielpaulus/go-ios/ios"
-	"github.com/danielpaulus/go-ios/ios/installationproxy"
 	"github.com/gookit/gcli/v3"
 	"github.com/gookit/gcli/v3/progress"
 	"golang.org/x/xerrors"
@@ -23,27 +21,20 @@ var AppListCommand = &gcli.Command{
 		c.AddArg("arg0", "应用名称")
 	},
 	Func: func(c *gcli.Command, args []string) error {
-		device, err := ios.GetDevice("")
+		device, err := idevice.GetDevice()
 		if err != nil {
 			return xerrors.Errorf("连接iOS设备错误: %w", err)
 		}
-		conn, err := installationproxy.New(device)
+		conn, err := idevice.NewAppManagerService(device)
 		if err != nil {
 			return xerrors.Errorf("连接服务错误：%w", err)
 		}
 		defer conn.Close()
 
-		userapps, err := conn.BrowseUserApps()
+		appList, err := conn.GetApplications()
 		if err != nil {
-			return xerrors.Errorf("获取用户应用列表错误：%w", err)
+			return err
 		}
-
-		sysapps, err := conn.BrowseSystemApps()
-		if err != nil {
-			return xerrors.Errorf("获取系统应用列表错误：%w", err)
-		}
-
-		appList := append(userapps, sysapps...)
 
 		c.Println("--------------------------------------------------------------")
 		w := new(tabwriter.Writer)
@@ -80,7 +71,7 @@ var AppInstallCommand = &gcli.Command{
 			return xerrors.Errorf("未传入IPA文件路径")
 		}
 
-		device, err := ios.GetDevice("")
+		device, err := idevice.GetDevice()
 		if err != nil {
 			return xerrors.Errorf("连接iOS设备错误: %w", err)
 		}
@@ -150,7 +141,7 @@ var AppUninstallCommand = &gcli.Command{
 			return xerrors.Errorf("未传入应用BundleID")
 		}
 
-		device, err := ios.GetDevice("")
+		device, err := idevice.GetDevice()
 		if err != nil {
 			return xerrors.Errorf("连接iOS设备错误: %w", err)
 		}

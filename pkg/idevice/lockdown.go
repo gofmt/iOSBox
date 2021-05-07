@@ -1,6 +1,7 @@
 package idevice
 
 import (
+	"golang.org/x/xerrors"
 	"howett.net/plist"
 )
 
@@ -34,84 +35,6 @@ type BasebandKeyHashInformationType struct {
 	AKeyStatus int
 	SKeyHash   []byte
 	SKeyStatus int
-}
-
-type AllValuesType struct {
-	ActivationState                             string
-	ActivationStateAcknowledged                 bool
-	BasebandActivationTicketVersion             string
-	BasebandCertID                              int `plist:"BasebandCertId"`
-	BasebandChipID                              int
-	BasebandKeyHashInformation                  BasebandKeyHashInformationType
-	BasebandMasterKeyHash                       string
-	BasebandRegionSKU                           []byte
-	BasebandSerialNumber                        []byte
-	BasebandStatus                              string
-	BasebandVersion                             string
-	BluetoothAddress                            string
-	BoardID                                     int `plist:"BoardId"`
-	BrickState                                  bool
-	BuildVersion                                string
-	CPUArchitecture                             string
-	CarrierBundleInfoArray                      []interface{}
-	CertID                                      int
-	ChipID                                      int
-	ChipSerialNo                                []byte
-	DeviceClass                                 string
-	DeviceColor                                 string
-	DeviceName                                  string
-	DieID                                       int
-	EthernetAddress                             string
-	FirmwareVersion                             string
-	FusingStatus                                int
-	HardwareModel                               string
-	HardwarePlatform                            string
-	HasSiDP                                     bool
-	HostAttached                                bool
-	InternationalMobileEquipmentIdentity        string
-	MLBSerialNumber                             string
-	MobileEquipmentIdentifier                   string
-	MobileSubscriberCountryCode                 string
-	MobileSubscriberNetworkCode                 string
-	ModelNumber                                 string
-	NonVolatileRAM                              NonVolatileRAMType
-	PartitionType                               string
-	PasswordProtected                           bool
-	PkHash                                      []byte
-	ProductName                                 string
-	ProductType                                 string
-	ProductVersion                              string
-	ProductionSOC                               bool
-	ProtocolVersion                             string
-	ProximitySensorCalibration                  []byte
-	RegionInfo                                  string
-	SBLockdownEverRegisteredKey                 bool
-	SIMStatus                                   string
-	SIMTrayStatus                               string
-	SerialNumber                                string
-	SoftwareBehavior                            []byte
-	SoftwareBundleVersion                       string
-	SupportedDeviceFamilies                     []int
-	TelephonyCapability                         bool
-	TimeIntervalSince1970                       float64
-	TimeZone                                    string
-	TimeZoneOffsetFromUTC                       float64
-	TrustedHostAttached                         bool
-	UniqueChipID                                uint64
-	UniqueDeviceID                              string
-	UseRaptorCerts                              bool
-	Uses24HourClock                             bool
-	WiFiAddress                                 string
-	WirelessBoardSerialNumber                   string
-	KCTPostponementInfoPRIVersion               string `plist:"kCTPostponementInfoPRIVersion"`
-	KCTPostponementInfoPRLName                  int    `plist:"kCTPostponementInfoPRLName"`
-	KCTPostponementInfoServiceProvisioningState bool   `plist:"kCTPostponementInfoServiceProvisioningState"`
-	KCTPostponementStatus                       string `plist:"kCTPostponementStatus"`
-}
-
-type GetAllValuesResponse struct {
-	Request string
-	Value   AllValuesType
 }
 
 type LockdownConn struct {
@@ -185,7 +108,7 @@ func (l *LockdownConn) StartSession(cert *Certificate) (*StartSessionResponse, e
 	return &resp, nil
 }
 
-func (l *LockdownConn) GetValues() (*GetAllValuesResponse, error) {
+func (l *LockdownConn) GetValues() (map[string]interface{}, error) {
 	req := valutRequest{
 		Label:   Label,
 		Key:     "",
@@ -201,9 +124,49 @@ func (l *LockdownConn) GetValues() (*GetAllValuesResponse, error) {
 		return nil, err
 	}
 
-	var resp GetAllValuesResponse
+	var resp map[string]interface{}
 	if _, err := plist.Unmarshal(bs, &resp); err != nil {
 		return nil, err
+	}
+
+	return resp, nil
+}
+
+type StartServiceResponse struct {
+	Port             uint16
+	Request          string
+	Service          string
+	EnableServiceSSL bool
+	Error            string
+}
+
+type startServiceRequest struct {
+	Label   string
+	Request string
+	Service string
+}
+
+func (l *LockdownConn) StartService(name string) (*StartServiceResponse, error) {
+	if err := l.Send(startServiceRequest{
+		Label:   Label,
+		Request: "StartService",
+		Service: name,
+	}); err != nil {
+		return nil, err
+	}
+
+	body, err := l.Recv()
+	if err != nil {
+		return nil, err
+	}
+
+	var resp StartServiceResponse
+	if _, err := plist.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Error != "" {
+		return nil, xerrors.Errorf("could not start service: %s with reason: %s.Have you mounted the Developer Image?", name, resp.Error)
 	}
 
 	return &resp, nil

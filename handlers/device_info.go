@@ -5,7 +5,8 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/danielpaulus/go-ios/ios"
+	"iOSBox/pkg/idevice"
+
 	"github.com/gookit/gcli/v3"
 	"golang.org/x/xerrors"
 )
@@ -15,11 +16,17 @@ var DeviceInfoCommand = &gcli.Command{
 	Desc:    "显示当前设备信息",
 	Aliases: []string{"in"},
 	Func: func(c *gcli.Command, args []string) error {
-		device, err := ios.GetDevice("")
+		device, err := idevice.GetDevice()
 		if err != nil {
 			return xerrors.Errorf("获取iOS设备错误: %w", err)
 		}
-		info, err := ios.GetValuesPlist(device)
+
+		lockdown, err := idevice.ConnectLockdownWithSession(device)
+		if err != nil {
+			return err
+		}
+
+		info, err := lockdown.GetValues()
 		if err != nil {
 			return xerrors.Errorf("获取设备信息错误：%w", err)
 		}

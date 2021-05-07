@@ -9,7 +9,6 @@ import (
 
 	"iOSBox/pkg/idevice"
 
-	"github.com/danielpaulus/go-ios/ios"
 	"github.com/gookit/gcli/v3"
 )
 
@@ -24,7 +23,7 @@ var PcapCommand = &gcli.Command{
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		device, err := ios.GetDevice("")
+		device, err := idevice.GetDevice()
 		if err != nil {
 			return err
 		}

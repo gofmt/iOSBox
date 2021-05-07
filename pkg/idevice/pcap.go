@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/danielpaulus/go-ios/ios"
 	"howett.net/plist"
 )
 
@@ -55,8 +54,8 @@ type IOSPacketHeader struct {
 	Unknown2       [8]byte
 }
 
-func StartPcapService(ctx context.Context, entry ios.DeviceEntry, procName string, wr io.Writer, dump func([]byte)) error {
-	service, err := ios.ConnectToService(entry, "com.apple.pcapd")
+func StartPcapService(ctx context.Context, entry *DeviceEntry, procName string, wr io.Writer, dump func([]byte)) error {
+	service, err := ConnectToService(entry, "com.apple.pcapd")
 	if err != nil {
 		return err
 	}
@@ -82,13 +81,12 @@ func StartPcapService(ctx context.Context, entry ios.DeviceEntry, procName strin
 		stoped = true
 	}()
 
-	pListCodec := ios.NewPlistCodec()
 	for {
 		if stoped {
 			break
 		}
 
-		bs, err := pListCodec.Decode(service.Reader())
+		bs, err := service.Decode(service.Reader())
 		if err != nil {
 			return err
 		}

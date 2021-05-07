@@ -17,7 +17,8 @@ type IConn interface {
 	Write(data []byte) error
 	Encode(msg interface{}) ([]byte, error)
 	Decode(r io.Reader) ([]byte, error)
-	EnableSessionSSL(certificate *Certificate) error
+	EnableSessionSSL(cert *Certificate) error
+	EnableSessionSSLHandshakeOnly(cert *Certificate) error
 }
 
 type Conn struct {
@@ -79,8 +80,16 @@ func (c *Conn) Decode(r io.Reader) ([]byte, error) {
 	return payload, nil
 }
 
-func (c *Conn) EnableSessionSSL(certificate *Certificate) error {
-	conn, err := c.createClientTLSConn(certificate)
+func (c *Conn) EnableSessionSSLHandshakeOnly(cert *Certificate) error {
+	_, err := c.createClientTLSConn(cert)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Conn) EnableSessionSSL(cert *Certificate) error {
+	conn, err := c.createClientTLSConn(cert)
 	if err != nil {
 		return err
 	}

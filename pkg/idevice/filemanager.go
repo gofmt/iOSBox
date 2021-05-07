@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"io"
 
-	"github.com/danielpaulus/go-ios/ios"
 	"golang.org/x/xerrors"
 )
 
@@ -83,13 +82,12 @@ type AFCPacket struct {
 type MapResult map[string]interface{}
 
 type FileManagerService struct {
-	conn       ios.DeviceConnectionInterface
-	plistCodec ios.PlistCodec
+	conn       IConn
 	header     *AFCHeader
 }
 
-func NewFileManagerService(device ios.DeviceEntry) (*FileManagerService, error) {
-	conn, err := ios.ConnectToService(device, "com.apple.afc")
+func NewFileManagerService(device *DeviceEntry) (*FileManagerService, error) {
+	conn, err := ConnectToService(device, "com.apple.afc")
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +97,6 @@ func NewFileManagerService(device ios.DeviceEntry) (*FileManagerService, error) 
 
 	return &FileManagerService{
 		conn:       conn,
-		plistCodec: ios.NewPlistCodec(),
 		header: &AFCHeader{
 			Magic:        magic,
 			EntireLength: 0,
