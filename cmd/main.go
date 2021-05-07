@@ -41,7 +41,6 @@ func main() {
 		handlers.AppInstallCommand,
 		handlers.AppUninstallCommand,
 		handlers.ProcessListCommand,
-		handlers.AppLaunchCommand,
 		handlers.ProcessKillCommand,
 		handlers.SystemRebootCommand,
 		handlers.SystemLogCommand,
