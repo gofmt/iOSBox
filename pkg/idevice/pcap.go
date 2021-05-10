@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"strings"
 	"time"
@@ -91,16 +92,17 @@ func StartPcapService(ctx context.Context, entry *DeviceEntry, procName string, 
 			return err
 		}
 
-		_, err = plist.Unmarshal(bs, &bs)
+		var data []byte
+		_, err = plist.Unmarshal(bs, &data)
 		if err != nil {
 			return err
 		}
 
 		if dump != nil {
-			go dump(bs)
+			go dump(data)
 		}
 
-		buf := bytes.NewReader(bs)
+		buf := bytes.NewReader(data)
 		var hdr IOSPacketHeader
 		if err := binary.Read(buf, binary.BigEndian, &hdr); err != nil {
 			return err
@@ -123,10 +125,16 @@ func StartPcapService(ctx context.Context, entry *DeviceEntry, procName string, 
 		if err := binary.Write(wr, binary.LittleEndian, pphdr); err != nil {
 			return err
 		}
-		if err := binary.Write(wr, binary.LittleEndian, bs[hdr.HdrLength:]); err != nil {
-			return err
+
+		if hdr.FramePreLength == 0 {
+			fmt.Printf("%+v\n",hdr)
+			ext := []byte{0xbe, 0xfe, 0xbe, 0xfe, 0xbe, 0xfe, 0xbe, 0xfe, 0xbe, 0xfe, 0xbe, 0xfe, 0x08, 0x00}
+			body := append(ext, data[hdr.HdrLength:]...)
+			err = binary.Write(wr, binary.LittleEndian, body)
+		} else {
+			err = binary.Write(wr, binary.LittleEndian, data[hdr.HdrLength:])
 		}
 	}
 
-	return nil
+	return err
 }
