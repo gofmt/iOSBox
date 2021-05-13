@@ -26,10 +26,12 @@ var DeviceInfoCommand = &gcli.Command{
 			return err
 		}
 
-		info, err := lockdown.GetValues()
+		ret, err := lockdown.GetValues()
 		if err != nil {
 			return xerrors.Errorf("获取设备信息错误：%w", err)
 		}
+
+		info := ret["Value"].(map[string]interface{})
 
 		w := new(tabwriter.Writer)
 		w.Init(os.Stdout, 0, 0, 1, ' ', 0)
