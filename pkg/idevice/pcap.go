@@ -50,8 +50,8 @@ type IOSPacketHeader struct {
 	Pid            uint32
 	ProcName       [17]byte
 	Unknown        uint32
-	Pid2           uint32
-	ProcName2      [17]byte
+	SubPid         uint32
+	SubProcName    [17]byte
 	Unknown2       [8]byte
 }
 
@@ -110,8 +110,8 @@ func StartPcapService(ctx context.Context, entry *DeviceEntry, procName string, 
 
 		if len(procName) > 0 {
 			pName := string(hdr.ProcName[:])
-			pName2 := string(hdr.ProcName2[:])
-			if !strings.HasPrefix(pName, procName) && !strings.HasPrefix(pName2, procName) {
+			subName := string(hdr.SubProcName[:])
+			if !strings.HasPrefix(procName, pName) && !strings.HasPrefix(procName, subName) {
 				continue
 			}
 		}
@@ -134,7 +134,10 @@ func StartPcapService(ctx context.Context, entry *DeviceEntry, procName string, 
 		} else {
 			err = binary.Write(wr, binary.LittleEndian, data[hdr.HdrLength:])
 		}
+		if err != nil {
+			return err
+		}
 	}
 
-	return err
+	return nil
 }
