@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/signal"
 
-	"iOSBox/pkg/idevice"
+	"github.com/gofmt/iOSBox/pkg/idevice"
 
 	"github.com/gookit/gcli/v3"
 )
@@ -28,7 +28,7 @@ var PcapCommand = &gcli.Command{
 			return err
 		}
 
-		f, err := os.OpenFile(args[0], os.O_CREATE|os.O_RDWR, 0644)
+		f, err := os.OpenFile(args[0], os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0755)
 		if err != nil {
 			return err
 		}

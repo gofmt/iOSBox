@@ -1,6 +1,8 @@
 package idevice
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestUSBConn_ListDevices(t *testing.T) {
 	device, err := GetDevice()

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"iOSBox/pkg/idevice"
+	"github.com/gofmt/iOSBox/pkg/idevice"
 
 	"github.com/gookit/gcli/v3"
 	"github.com/gookit/gcli/v3/progress"

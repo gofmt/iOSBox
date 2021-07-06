@@ -5,7 +5,7 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"iOSBox/pkg/idevice"
+	"github.com/gofmt/iOSBox/pkg/idevice"
 
 	"github.com/gookit/gcli/v3"
 	"golang.org/x/xerrors"

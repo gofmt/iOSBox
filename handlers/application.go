@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"text/tabwriter"
 
-	"iOSBox/pkg/idevice"
+	"github.com/gofmt/iOSBox/pkg/idevice"
 
 	"github.com/gookit/gcli/v3"
 	"github.com/gookit/gcli/v3/progress"
@@ -36,9 +36,9 @@ var AppListCommand = &gcli.Command{
 			return err
 		}
 
-		c.Println("--------------------------------------------------------------")
 		w := new(tabwriter.Writer)
 		w.Init(os.Stdout, 0, 0, 1, ' ', 0)
+		_, _ = fmt.Fprintln(w, "--------------------------------------------------------------")
 		for i, info := range appList {
 			if len(args) == 1 && args[0] != info.CFBundleDisplayName {
 				continue
@@ -132,7 +132,7 @@ var AppUninstallCommand = &gcli.Command{
 	Name:     "uninstall",
 	Desc:     "卸载应用",
 	Aliases:  []string{"uns", "u"},
-	Examples: "{$binName} {$cmd} con.xxx.xxx",
+	Examples: "{$binName} {$cmd} com.xxx.xxx",
 	Config: func(c *gcli.Command) {
 		c.AddArg("arg0", "应用BundleID", true)
 	},

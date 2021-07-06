@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"iOSBox/pkg/idevice"
+	"github.com/gofmt/iOSBox/pkg/idevice"
 
 	"github.com/gookit/color"
 	"github.com/gookit/gcli/v3"

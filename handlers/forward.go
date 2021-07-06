@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"strconv"
 
-	"iOSBox/pkg/idevice"
+	"github.com/gofmt/iOSBox/pkg/idevice"
 
 	"github.com/gookit/gcli/v3"
 )
