@@ -95,10 +95,6 @@ func StartPcapService(ctx context.Context, entry *DeviceEntry, procName string, 
 			return err
 		}
 
-		if dump != nil {
-			go dump(data)
-		}
-
 		buf := bytes.NewReader(data)
 		var hdr IOSPacketHeader
 		if err := binary.Read(buf, binary.BigEndian, &hdr); err != nil {
@@ -106,11 +102,15 @@ func StartPcapService(ctx context.Context, entry *DeviceEntry, procName string, 
 		}
 
 		if len(procName) > 0 {
-			pName := string(hdr.ProcName[:])
-			subName := string(hdr.SubProcName[:])
-			if !strings.HasPrefix(procName, pName) && !strings.HasPrefix(procName, subName) {
+			pName := strings.TrimSpace(string(hdr.ProcName[:]))
+			subName := strings.TrimSpace(string(hdr.SubProcName[:]))
+			if !strings.HasPrefix(pName, procName) && !strings.HasPrefix(subName, procName) {
 				continue
 			}
+		}
+
+		if dump != nil {
+			go dump(data)
 		}
 
 		pphdr := PcapPacketHeader{
