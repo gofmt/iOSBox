@@ -17,4 +17,4 @@
 
 .idea/
 go_build_*_cmd
-/pkg/frida/libfrida-core.a
+/pkg/lldb/libfrida-core.a

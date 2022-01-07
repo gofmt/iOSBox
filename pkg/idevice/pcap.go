@@ -80,13 +80,10 @@ func StartPcapService(ctx context.Context, entry *DeviceEntry, procName string, 
 	go func() {
 		<-ctx.Done()
 		stoped = true
+		fmt.Println("exit")
 	}()
 
 	for {
-		if stoped {
-			break
-		}
-
 		bs, err := service.Decode(service.Reader())
 		if err != nil {
 			return err
@@ -127,15 +124,20 @@ func StartPcapService(ctx context.Context, entry *DeviceEntry, procName string, 
 		}
 
 		if hdr.FramePreLength == 0 {
-			fmt.Printf("%+v\n",hdr)
+			fmt.Printf("%+v\n", hdr)
 			ext := []byte{0xbe, 0xfe, 0xbe, 0xfe, 0xbe, 0xfe, 0xbe, 0xfe, 0xbe, 0xfe, 0xbe, 0xfe, 0x08, 0x00}
 			body := append(ext, data[hdr.HdrLength:]...)
 			err = binary.Write(wr, binary.LittleEndian, body)
 		} else {
 			err = binary.Write(wr, binary.LittleEndian, data[hdr.HdrLength:])
 		}
+
 		if err != nil {
 			return err
+		}
+
+		if stoped {
+			break
 		}
 	}
 

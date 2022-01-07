@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/gofmt/iOSBox/pkg/idevice"
 
@@ -51,7 +52,7 @@ var PcapCommand = &gcli.Command{
 		}()
 
 		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, os.Interrupt)
+		signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL)
 		<-quit
 
 		cancel()
